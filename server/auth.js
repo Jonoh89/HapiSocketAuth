@@ -1,11 +1,4 @@
-var accounts = {
-  123: {
-    id: 123,
-    user: 'john',
-    fullName: 'John Doe',
-    scope: ['a', 'b']
-  }
-};
+
 
 exports.register = function(server, options, next) {
 
@@ -14,11 +7,19 @@ exports.register = function(server, options, next) {
     key: 'secret',
     validateFunc: function(data, request, callback) {
 
-      if (!accounts[data.id]) {
-        return callback(null, false);
-      } else {
-        return callback(null, true, accounts[data.id]);
-      }
+      var User = request.server.plugins['hapi-mongo-models'].User;
+      User.findById(data.id, function(err, user) {
+        if (err) {
+          return callback(err);
+        }
+
+        if (user) {
+          return callback(null, false);
+        } else {
+          return callback(null, true, user);
+        }
+      });
+
     }
   });
 
